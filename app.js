@@ -12,6 +12,36 @@ app.use(Cors())
 
 Mongoose.connect("mongodb+srv://anjali2003:anjali2003@cluster0.wy6js.mongodb.net/blogappnewdb?retryWrites=true&w=majority&appName=Cluster0")
 
+//sign in
+app.post("/signin", async (req, res) => {
+
+    let input = req.body
+    let result = userModel.find({ email: req.body.email }).then(
+        (items) => {
+            if (items.length > 0) {
+                const passwordValidator = Bcrypt.compareSync(req.body.password, items[0].password)
+                if (passwordValidator) {
+
+                    jwt.sign({ email: req.body.email }, "blogApp", { expiresIn: "1d" },
+                        (error, token) => {
+                            if (error) {
+                                res.json({"status":"error","errorMessage":error})
+                            } else {
+                                res.json({ "status": "success","token":token,"userId":items[0]._id }) 
+                            }
+                    })
+                } else {
+                    res.json({ "status": "incorrect password" })
+                }
+            } else {
+                res.json({ "status": "invalid email id" })
+            }
+        }
+    ).catch()
+})
+
+
+//sign up
 app.post("/signup", async (req, res) => {
     let input = req.body
     let hashedPassword = Bcrypt.hashSync(req.body.password, 10)
@@ -20,21 +50,20 @@ app.post("/signup", async (req, res) => {
 
     userModel.find({ email: req.body.email }).then(
         (items) => {
-    
-    if (items.length > 0) {
 
-        res.json({ "status": "email id already exist" })
+            if (items.length > 0) {
 
-    } else {
+                res.json({ "status": "email id already exist" })
 
-        let result = new userModel(input)
-        result.save()
-        res.json({ "status": "success" })
-    }
+            } else {
+
+                let result = new userModel(input)
+                result.save()
+                res.json({ "status": "success" })
+            }
 
 
-    //res.send(data)
-})
+        })
 })
 
 app.listen(8080, () => {
