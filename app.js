@@ -65,7 +65,7 @@ app.post("/viewmypost", (req, res) => {
     jwt.verify(token, "blogApp", (error, decoded) => {
         if (decoded && decoded.email) {
 
-            postModel.find().then(
+            postModel.find(input).then(
                 (items) => {
                     res.json(items)
                 }
