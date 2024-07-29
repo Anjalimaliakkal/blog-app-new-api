@@ -4,6 +4,7 @@ const Bcrypt = require("bcrypt")
 const Cors = require("cors")
 const jwt = require("jsonwebtoken")
 const userModel = require("./models/users")
+const postModel = require("./models/posts")
 
 let app = Express()
 
@@ -32,6 +33,53 @@ app.post("/create", async (req, res) => {
 
 })
 
+//view all post
+
+app.post("/viewall", (req, res) => {
+
+    let token = req.headers.token
+    jwt.verify(token, "blogApp", (error, decoded) => {
+        if (decoded && decoded.email) {
+
+            postModel.find().then(
+                (items) => {
+                    res.json(items)
+                }
+            ).catch(
+                (error) => {
+                    res.json({ "status": "error" })
+                }
+            )
+        } else {
+            res.json({ "status": "invalid Authentication" })
+        }
+    })
+})
+
+//view my post
+
+app.post("/viewmypost", (req, res) => {
+
+    let input = req.body
+    let token = req.headers.token
+    jwt.verify(token, "blogApp", (error, decoded) => {
+        if (decoded && decoded.email) {
+
+            postModel.find(input).then(
+                (items) => {
+                    res.json(items)
+                }
+            ).catch(
+                (error) => {
+                    res.json({ "status": "error" })
+                }
+            )
+        } else {
+            res.json({ "status": "invalid Authentication" })
+        }
+    })
+})
+
 //sign in
 app.post("/signin", async (req, res) => {
 
@@ -42,7 +90,7 @@ app.post("/signin", async (req, res) => {
                 const passwordValidator = Bcrypt.compareSync(req.body.password, items[0].password)
                 if (passwordValidator) {
 
-                    jwt.sign({ email: req.body.email }, "blogApp", { expiresIn: "1d" },
+                    jwt.sign({ email: req.body.email }, "blogApp", { expiresIn: "7d" },
                         (error, token) => {
                             if (error) {
                                 res.json({ "status": "error", "errorMessage": error })
